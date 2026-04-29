@@ -29,6 +29,10 @@ To get started with Streamed, clone the repository, set up your media files, and
 ```bash
 git clone https://github.com/8nt0n/streamed.git
 cd streamed
+python3 -m venv venv
+source venv/bin/activate
+pip3 -r install requirements.txt
+flask run
 ```
 
 # File Structure - Explained
