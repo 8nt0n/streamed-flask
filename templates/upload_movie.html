@@ -1,16 +1,173 @@
-<h1>Add metadata</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamed - Upload Movie</title>
+    <style>
+        /* hey, breaking the 3. wall to tell you that i completely vibcoded css + html bc thats booooring */
 
-<form action="/upload_movie" method="post" enctype="multipart/form-data"> <!--enctype is because of like uploading .mp4-->
-    
-    <input autocomplete="off" name="moviename" placeholder="Name" type="text"> <br>
-    <input autocomplete="off" name="description" placeholder="Description" type="text">
-    <br>
-    <label>Movie File (.mp4)</label>
-    <input type="file" name="movie_file" accept=".mp4">
 
-    <label>Poster Image (.png)</label>
-    <input type="file" name="poster_file" accept=".png">
-    
-    <button style="margin-top: 15px;" type="submit">Register</button>
-</form>
+        /* Import a clean, modern font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 
+        /* Dark, slightly textured background to make the glass pop */
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+            background-image: url("static/bg_v2d.png");
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            color: #ffffff;
+        }
+
+        /* The Frosty Liquid Glass Container */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03); /* Very faint white fill */
+            backdrop-filter: blur(16px); /* The frost effect */
+            -webkit-backdrop-filter: blur(16px); /* Safari support */
+            border: 1px solid rgba(255, 255, 255, 0.08); /* Subtle glass edge */
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-panel h1 {
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 24px;
+            font-weight: 500;
+            letter-spacing: -0.5px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Form Layout */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.6);
+            margin-left: 4px;
+        }
+
+        /* Glassy Inputs */
+        input[type="text"] {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #fff;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Focus state using the blue from your reference image */
+        input[type="text"]:focus {
+            background: rgba(0, 0, 0, 0.3);
+            border-color: #55b9f3;
+            box-shadow: 0 0 0 3px rgba(85, 185, 243, 0.15);
+        }
+
+        /* File Upload Customization */
+        input[type="file"] {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 13px;
+        }
+
+        /* Customizing the ugly default "Choose File" button */
+        input[type="file"]::file-selector-button {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            padding: 8px 16px;
+            margin-right: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Submit Button */
+        button[type="submit"] {
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button[type="submit"]:hover {
+            background: #55b9f3; /* Pop of blue on hover */
+            border-color: #55b9f3;
+            box-shadow: 0 4px 15px rgba(85, 185, 243, 0.3);
+            transform: translateY(-1px);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(1px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glass-panel">
+        <h1>Upload Movie</h1>
+        <form action="/upload_movie" method="post" enctype="multipart/form-data">
+            
+            <input autocomplete="off" name="moviename" placeholder="Name" type="text">
+            <input autocomplete="off" name="description" placeholder="Description" type="text">
+            
+            <div class="input-group">
+                <label>Movie File (.mp4)</label>
+                <input type="file" name="movie_file" accept=".mp4">
+            </div>
+
+            <div class="input-group">
+                <label>Poster Image (.png)</label>
+                <input type="file" name="poster_file" accept=".png">
+            </div>
+            
+            <button type="submit">Register</button>
+        </form>
+    </div>
+
+</body>
+</html>

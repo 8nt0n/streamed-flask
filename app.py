@@ -69,6 +69,9 @@ def login():
 
         session["user_id"] = rows[0]["id"]
 
+        # can assume the forms username is correct because we queried the db with it right?
+        session["user_name"] = request.form.get("username")
+
         return redirect("/")
     else:
         return render_template("login.html")
@@ -118,18 +121,28 @@ def register():
 
     else:
         return render_template("register.html")
+    
+
+# --------------------------dashboard--------------------------#
+
+@app.route("/dashboard", methods=["GET", "POST"])
+@login_required
+def dashboard():
+    if request.method == "GET":
+        return render_template("dashboard.html", name=session["user_name"])
+    else:
+        return apology("w345rtzg")
 
 
-# --------------------------upload--------------------------#
+
+# ------------------------upload movie------------------------#
 
 @app.route("/upload_movie", methods=["GET", "POST"]) 
-def upload():
+def upload_movie():
     if request.method == "GET":
         return render_template("upload_movie.html")
     
     if request.method == "POST":
-
-        
         movie_name = secure_filename(request.form.get("moviename")) # this makes sure bad people cant come into the code :)
         description = request.form.get("description")
         movie_file = request.files.get("movie_file")
@@ -172,6 +185,91 @@ def upload():
         poster_file.save(f"static/media/movies/{movie_name}/meta/thumbnail.png")
 
         # run refresh.py (man tbh i dont know if thats the clean way to do this, desperate times ok?)
+        script_path = "static/_tools/refresh.py"
+        result = subprocess.run(
+            [sys.executable, script_path],
+            capture_output=True,
+            text=True
+        )
+
+        print(result)        
+
+        return redirect("/")
+    
+
+
+
+# ------------------------upload series------------------------#
+
+@app.route("/upload_series", methods=["GET", "POST"]) 
+def upload_series():
+    if request.method == "GET":
+        return render_template("upload_series.html")
+    
+    if request.method == "POST":
+        # Get master series info
+        series_title = secure_filename(request.form.get("series_title")) # making sure bad people can't do bad things
+        description = request.form.get("series_description")
+        series_cover = request.files.get("series_cover")
+
+        # Validate master series info
+        if not series_title:
+            return apology("missing series title", 400)
+        if not description:
+            return apology("missing series description", 400)
+        if not series_cover:
+            return apology("missing main series cover", 400)
+        if not series_cover.filename.endswith(".png"):
+            return apology("series cover must be png", 400)
+
+        # Set up base paths
+        base_path = f"static/media/series/{series_title}"
+        meta_path = f"{base_path}/meta"
+
+        # Try to create the series and meta folders
+        try:
+            os.makedirs(meta_path, exist_ok=False)
+        except FileExistsError:
+            return apology("series already exists", 400)
+        with open(f"{meta_path}/description.txt", "w") as descriptionFile:
+            descriptionFile.write(description)
+        series_cover.save(f"{meta_path}/0.png")
+
+        # Get the maximum number of seasons added in the form
+        try:
+            max_season_index = int(request.form.get("max_season_index", 1))
+        except ValueError:
+            max_season_index = 1
+
+        for i in range(1, max_season_index + 1):
+            cover_field = f"season_{i}_cover"
+            episodes_field = f"season_{i}_episodes"
+
+            # Check if this specific season was actually uploaded
+            if cover_field in request.files:
+                season_cover = request.files.get(cover_field)
+                season_episodes = request.files.getlist(episodes_field) # getlist handles multiple file uploads
+
+                # Validation for the season files
+                if not season_cover or not season_cover.filename.endswith(".png"):
+                    return apology(f"season {i} cover missing or not png", 400)
+                
+                if not season_episodes or all(ep.filename == '' for ep in season_episodes):
+                    return apology(f"season {i} is missing episodes", 400)
+
+                season_cover.save(f"{meta_path}/{i}.png")
+                season_path = f"{base_path}/{i}"
+                os.makedirs(season_path, exist_ok=True)
+
+                for episode in season_episodes:
+                    if episode and episode.filename:
+                        if not episode.filename.endswith(".mp4"):
+                            return apology(f"season {i} episodes must be mp4", 400)
+                        
+                        safe_ep_name = secure_filename(episode.filename)
+                        episode.save(f"{season_path}/{safe_ep_name}")
+
+        # Run refresh.py
         script_path = "static/_tools/refresh.py"
         result = subprocess.run(
             [sys.executable, script_path],

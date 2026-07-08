@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Manager Dashboard</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #0b0f19;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 40px;
+        }
+
+        /* --- Header Section & Divider --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 24px;
+            border-bottom: 1px solid #161f30; /* Divider line under navbar */
+            margin-bottom: 40px;
+        }
+
+        .brand-badge {
+            padding: 8px 16px;
+            gap: 8px;
+        }
+
+        .brand-badge::before {
+            content: "▶";
+            font-size: 10px;
+        }
+
+        .title-container {
+            text-align: center;
+        }
+
+        .title-container h1 {
+            font-size: 32px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .title-container p {
+            font-size: 14px;
+            color: #56617a;
+            margin-top: 2px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: right;
+        }
+
+        .user-details .username {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .user-details .role {
+            font-size: 12px;
+            color: #56617a;
+        }
+
+        .avatar-placeholder {
+            width: 40px;
+            height: 40px;
+            background-color: #e0e0e0;
+            border-radius: 50%;
+        }
+
+        /* --- Dashboard Content --- */
+        .dashboard-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 400;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .grid-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        /* --- Interactive Gradient Tiles --- */
+        .tile {
+            display: flex;
+            align-items: center;
+            width: 240px;
+            height: 95px;
+            border-radius: 18px;
+            padding: 0 24px;
+            text-decoration: none;
+            color: #000000;
+            font-weight: 500;
+            font-size: 18px;
+            gap: 20px;
+            transition: transform 0.2s ease, filter 0.2s ease;
+        }
+
+        .tile:hover {
+            transform: translateY(-3px);
+            filter: brightness(1.08);
+        }
+
+        .tile-icon {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        /* Gradient Layout Customization */
+        .tile-movie { background: linear-gradient(135deg, #ff7b23, #ffae42); }
+        .tile-series { background: linear-gradient(135deg, #49688d, #7499c2); }
+        .tile-audio { background: linear-gradient(135deg, #874ef4, #b983ff); }
+        .tile-more { background: linear-gradient(135deg, #cdcdcd, #f0f0f0); }
+        .tile-uptime { background: linear-gradient(135deg, #19cb55, #56ec84); }
+        .tile-logs { background: linear-gradient(135deg, #17b3b3, #4fe1db); }
+        .tile-storage { background: linear-gradient(135deg, #e34c93, #f985be); }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <img src="static/icon.png" alt="" class="brand-badge">
+        
+        <div class="title-container">
+            <h1>Dashboard</h1>
+            <p>Media Manager</p>
+        </div>
+        
+        <div class="user-profile">
+            <div class="user-details">
+                <div class="username">{{ name }}</div>
+                <div class="role">User Role</div>
+            </div>
+            <div class="avatar-placeholder"></div>
+        </div>
+    </header>
+
+    <main>
+        <section class="dashboard-section">
+            <h2 class="section-title">Upload</h2>
+            <div class="grid-container">
+                
+                <a href="upload_movie" class="tile tile-movie">
+                    <img src="static/icons/dashboard/movie.png" alt="Movie" class="tile-icon">
+                    <span>Movie</span>
+                </a>
+
+                <a href="series.html" class="tile tile-series">
+                    <img src="static/icons/dashboard/series.png" alt="Series" class="tile-icon">
+                    <span>Series</span>
+                </a>
+
+                <a href="audio.html" class="tile tile-audio">
+                    <img src="static/icons/dashboard/audio.png" alt="Audio" class="tile-icon">
+                    <span>Audio</span>
+                </a>
+
+                <a href="more.html" class="tile tile-more">
+                    <img src="static/icons/dashboard/more.png" alt="More to come" class="tile-icon">
+                    <span>More to come</span>
+                </a>
+
+            </div>
+        </section>
+
+        <section class="dashboard-section">
+            <h2 class="section-title">System Info</h2>
+            <div class="grid-container">
+
+                <a href="uptime.html" class="tile tile-uptime">
+                    <img src="static/icons/dashboard/uptime.png" alt="Uptime" class="tile-icon">
+                    <span>Uptime</span>
+                </a>
+
+                <a href="logs.html" class="tile tile-logs">
+                    <img src="static/icons/dashboard/logs.png" alt="Logs" class="tile-icon">
+                    <span>Logs</span>
+                </a>
+
+                <a href="storage.html" class="tile tile-storage">
+                    <img src="static/icons/dashboard/storage.png" alt="Storage" class="tile-icon">
+                    <span>Storage</span>
+                </a>
+
+            </div>
+        </section>
+    </main>
+
+</body>
+</html>
