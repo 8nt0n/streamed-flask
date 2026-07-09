@@ -12,15 +12,13 @@
             padding: 40px 20px;
             min-height: 100vh;
             display: flex;
-            align-items: flex-start; /* Aligned to top so it can scroll naturally */
+            align-items: flex-start;
             justify-content: center;
             font-family: 'Inter', sans-serif;
-            
             background-image: url("static/bg_v2d.png");
             background-position: center;
             background-size: cover;
             background-repeat: no-repeat;
-            
             color: #ffffff;
             box-sizing: border-box;
         }
@@ -36,6 +34,7 @@
             max-width: 550px;
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2), 
                         inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
         }
 
         .glass-panel h1 {
@@ -90,14 +89,15 @@
             box-sizing: border-box;
         }
 
-        input[type="text"]::placeholder {
-            color: rgba(255, 255, 255, 0.3);
-        }
-
         input[type="text"]:focus {
             background: rgba(0, 0, 0, 0.5);
             border-color: #55b9f3;
             box-shadow: 0 0 0 3px rgba(85, 185, 243, 0.15);
+        }
+
+        input[type="text"]:disabled, input[type="file"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         input[type="file"] {
@@ -119,12 +119,6 @@
             transition: all 0.2s ease;
         }
 
-        input[type="file"]::file-selector-button:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-
-        /* Nested Season Blocks */
         .season-block {
             background: rgba(0, 0, 0, 0.25);
             border: 1px solid rgba(255, 255, 255, 0.05);
@@ -156,7 +150,6 @@
             color: rgba(255, 255, 255, 0.9);
         }
 
-        /* Buttons */
         button {
             font-family: inherit;
             cursor: pointer;
@@ -174,11 +167,6 @@
             font-weight: 500;
         }
 
-        .btn-remove:hover {
-            background: rgba(255, 75, 75, 0.2);
-            border-color: #ff6b6b;
-        }
-
         .btn-add {
             background: transparent;
             border: 1px dashed rgba(255, 255, 255, 0.3);
@@ -188,12 +176,6 @@
             font-size: 14px;
             width: 100%;
             margin-top: 10px;
-        }
-
-        .btn-add:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: #55b9f3;
-            color: #55b9f3;
         }
 
         .btn-submit {
@@ -212,31 +194,62 @@
             background: #55b9f3;
             color: #121212;
             box-shadow: 0 4px 20px rgba(85, 185, 243, 0.4);
-            transform: translateY(-2px);
-        }
-        
-        .btn-submit:active {
-            transform: translateY(1px);
         }
 
-        #seasons-container {
+        /* --- Progress Bar Styles --- */
+        #progress-container {
+            display: none; /* Hidden initially */
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .progress-header {
             display: flex;
-            flex-direction: column;
-            gap: 20px;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+            font-weight: 500;
         }
 
+        #progress-log {
+            color: #55b9f3;
+        }
+
+        #progress-percent {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #55b9f3, #4fe1db);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(85, 185, 243, 0.5);
+        }
     </style>
 </head>
 <body>
 
     <div class="glass-panel">
         <h1>Register New Series</h1>
-        <form action="/upload_series" method="post" enctype="multipart/form-data">
+        <form id="uploadForm" action="/upload_series" method="post" enctype="multipart/form-data">
             
-            <!-- Hidden input to tell Flask the maximum season index submitted -->
             <input type="hidden" name="max_season_index" id="max_season_index" value="1">
 
-            <!-- SERIES MASTER INFO -->
             <div class="section-title">Series Details</div>
             
             <div class="input-group">
@@ -252,14 +265,11 @@
                 <input type="file" name="series_cover" accept=".png" required>
             </div>
 
-            <!-- SEASONS CONTAINER -->
             <div class="section-title" style="margin-top: 20px;">Seasons</div>
             <div id="seasons-container">
-                <!-- Initial Season 1 Block -->
                 <div class="season-block" id="season-block-1">
                     <div class="season-header">
                         <h3>Season 1</h3>
-                        <!-- No remove button for the first required season -->
                     </div>
                     <div class="input-group">
                         <label>Season 1 Cover (.png)</label>
@@ -272,28 +282,35 @@
                 </div>
             </div>
 
-            <!-- Add New Season Button -->
-            <button type="button" class="btn-add" onclick="addSeason()">
+            <button type="button" class="btn-add" id="addSeasonBtn" onclick="addSeason()">
                 + Add Another Season
             </button>
             
-            <!-- Submit Entire Series -->
-            <button class="btn-submit" type="submit">Upload Complete Series</button>
+            <button class="btn-submit" id="submitBtn" type="submit">Upload Complete Series</button>
+
+            <!-- Progress Bar Container -->
+            <div id="progress-container">
+                <div class="progress-header">
+                    <span id="progress-log">Preparing upload...</span>
+                    <span id="progress-percent">0%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+
         </form>
     </div>
 
-    <script>
+     <script>
         let seasonIndex = 1;
 
         function addSeason() {
             seasonIndex++;
-            
-            // Update the hidden input so Flask knows the highest index to check for
             document.getElementById('max_season_index').value = seasonIndex;
 
             const container = document.getElementById('seasons-container');
             const seasonBlock = document.createElement('div');
-            
             seasonBlock.className = 'season-block';
             seasonBlock.id = `season-block-${seasonIndex}`;
             
@@ -311,16 +328,97 @@
                     <input type="file" name="season_${seasonIndex}_episodes" accept=".mp4" multiple required>
                 </div>
             `;
-            
             container.appendChild(seasonBlock);
         }
 
         function removeSeason(id) {
             const block = document.getElementById(`season-block-${id}`);
-            if (block) {
-                block.remove();
-            }
+            if (block) block.remove();
         }
+
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Stop standard form submission
+
+            const form = this;
+            const submitBtn = document.getElementById('submitBtn');
+            const addBtn = document.getElementById('addSeasonBtn');
+            const progressContainer = document.getElementById('progress-container');
+            const fill = document.getElementById('progress-fill');
+            const log = document.getElementById('progress-log');
+            const percentText = document.getElementById('progress-percent');
+            const maxSeason = parseInt(document.getElementById('max_season_index').value);
+
+            // must create the FormData before disabling inputs, 
+            // otherwise disabled inputs are ignored and sent as empty.
+            const formData = new FormData(form);
+
+            // 2. NOW disable the inputs
+            const allInputs = form.querySelectorAll('input, button');
+            allInputs.forEach(input => input.disabled = true);
+
+            // Swap out submit buttons for the progress UI
+            submitBtn.style.display = 'none';
+            addBtn.style.display = 'none';
+            progressContainer.style.display = 'block';
+
+            // Create XHR request
+            const xhr = new XMLHttpRequest();
+
+            // Track Upload Progress
+            xhr.upload.addEventListener('progress', function(event) {
+                if (event.lengthComputable) {
+                    let percentComplete = (event.loaded / event.total) * 100;
+                    
+                    // Update visual UI
+                    fill.style.width = percentComplete + '%';
+                    percentText.innerText = Math.round(percentComplete) + '%';
+                    
+                    if (percentComplete < 100) {
+                        // Calculate which season we are probably uploading to fake a cool log
+                        let currentEstimatedSeason = Math.ceil((percentComplete / 100) * maxSeason) || 1;
+                        if (currentEstimatedSeason > maxSeason) currentEstimatedSeason = maxSeason;
+                        
+                        log.innerText = `Uploading Season ${currentEstimatedSeason} chunks...`;
+                    } else {
+                        // Upload is done, now Flask is saving/running the refresh script
+                        log.innerText = "Processing files on server... (Please wait)";
+                        fill.style.background = "#56ec84"; // turn green
+                        fill.style.boxShadow = "0 0 10px rgba(86, 236, 132, 0.5)";
+                    }
+                }
+            });
+
+            // Handle Response Completion
+            xhr.addEventListener('load', function() {
+                // Flask returns 302 on success because of your redirect("/")
+                if (xhr.status === 200 || xhr.status === 302 || xhr.status === 201) { 
+                    log.innerText = "Upload Complete! Redirecting...";
+                    setTimeout(() => {
+                        window.location.href = '/'; // Go to dashboard
+                    }, 1000);
+                } else {
+                    log.innerText = "Error uploading. Server returned " + xhr.status;
+                    log.style.color = "#ff6b6b";
+                    fill.style.background = "#ff6b6b"; // turn red
+                    fill.style.boxShadow = "none";
+                    
+                    // Re-enable form so they can try again
+                    allInputs.forEach(input => input.disabled = false);
+                    submitBtn.style.display = 'block';
+                }
+            });
+
+            // Handle network errors
+            xhr.addEventListener('error', function() {
+                log.innerText = "Network Error occurred during upload.";
+                log.style.color = "#ff6b6b";
+                fill.style.background = "#ff6b6b";
+            });
+
+            // Send the request!
+            xhr.open('POST', form.action, true);
+            xhr.send(formData);
+        });
     </script>
 </body>
 </html>

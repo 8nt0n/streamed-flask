@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Streamed - Upload Movie</title>
     <style>
-        /* hey, breaking the 3. wall to tell you that i completely vibcoded css + html bc thats booooring */
-
-
         /* Import a clean, modern font */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
 
@@ -94,6 +91,11 @@
             box-shadow: 0 0 0 3px rgba(85, 185, 243, 0.15);
         }
 
+        input[type="text"]:disabled, input[type="file"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         /* File Upload Customization */
         input[type="file"] {
             color: rgba(255, 255, 255, 0.6);
@@ -144,30 +146,174 @@
         button[type="submit"]:active {
             transform: translateY(1px);
         }
+
+        /* --- Progress Bar Styles --- */
+        #progress-container {
+            display: none; /* Hidden initially */
+            margin-top: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        #progress-log {
+            color: #55b9f3;
+        }
+
+        #progress-percent {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #55b9f3, #4fe1db);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(85, 185, 243, 0.5);
+        }
     </style>
 </head>
 <body>
 
     <div class="glass-panel">
         <h1>Upload Movie</h1>
-        <form action="/upload_movie" method="post" enctype="multipart/form-data">
+        <form id="uploadForm" action="/upload_movie" method="post" enctype="multipart/form-data">
             
-            <input autocomplete="off" name="moviename" placeholder="Name" type="text">
-            <input autocomplete="off" name="description" placeholder="Description" type="text">
+            <input autocomplete="off" name="moviename" placeholder="Name" type="text" required>
+            <input autocomplete="off" name="description" placeholder="Description" type="text" required>
             
             <div class="input-group">
                 <label>Movie File (.mp4)</label>
-                <input type="file" name="movie_file" accept=".mp4">
+                <input type="file" name="movie_file" accept=".mp4" required>
             </div>
 
             <div class="input-group">
                 <label>Poster Image (.png)</label>
-                <input type="file" name="poster_file" accept=".png">
+                <input type="file" name="poster_file" accept=".png" required>
             </div>
             
-            <button type="submit">Register</button>
+            <button id="submitBtn" type="submit">Register</button>
+
+            <!-- Progress Bar Container -->
+            <div id="progress-container">
+                <div class="progress-header">
+                    <span id="progress-log">Preparing upload...</span>
+                    <span id="progress-percent">0%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+
         </form>
     </div>
 
+    <script>
+        // --- AJAX Upload Logic ---
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Stop standard form submission
+
+            const form = this;
+            const submitBtn = document.getElementById('submitBtn');
+            const progressContainer = document.getElementById('progress-container');
+            const fill = document.getElementById('progress-fill');
+            const log = document.getElementById('progress-log');
+            const percentText = document.getElementById('progress-percent');
+
+            // must create the FormData before disabling inputs
+            const formData = new FormData(form);
+
+            // 2. NOW disable the inputs to prevent meddling
+            const allInputs = form.querySelectorAll('input, button');
+            allInputs.forEach(input => input.disabled = true);
+
+            // Swap out submit button for the progress UI
+            submitBtn.style.display = 'none';
+            progressContainer.style.display = 'block';
+
+            // Create XHR request
+            const xhr = new XMLHttpRequest();
+
+            // Track Upload Progress
+            xhr.upload.addEventListener('progress', function(event) {
+                if (event.lengthComputable) {
+                    let percentComplete = (event.loaded / event.total) * 100;
+                    
+                    // Update visual UI
+                    fill.style.width = percentComplete + '%';
+                    percentText.innerText = Math.round(percentComplete) + '%';
+                    
+                    if (percentComplete < 100) {
+                        log.innerText = `Uploading movie data...`;
+                    } else {
+                        // Upload is done, now Flask is processing the video logic
+                        log.innerText = "Processing files on server... (Please wait)";
+                        fill.style.background = "#56ec84"; // turn green
+                        fill.style.boxShadow = "0 0 10px rgba(86, 236, 132, 0.5)";
+                    }
+                }
+            });
+
+            // Handle Response Completion
+            xhr.addEventListener('load', function() {
+                // Flask redirect returns 302/200 
+                if (xhr.status === 200 || xhr.status === 302 || xhr.status === 201) { 
+                    log.innerText = "Upload Complete! Redirecting...";
+                    setTimeout(() => {
+                        window.location.href = '/'; // Go to dashboard
+                    }, 1000);
+                } else {
+                    log.innerText = "Error uploading. Server returned " + xhr.status;
+                    log.style.color = "#ff6b6b";
+                    fill.style.background = "#ff6b6b"; // turn red
+                    fill.style.boxShadow = "none";
+                    
+                    // Re-enable form so they can try again
+                    allInputs.forEach(input => input.disabled = false);
+                    submitBtn.style.display = 'block';
+                }
+            });
+
+            // Handle network errors
+            xhr.addEventListener('error', function() {
+                log.innerText = "Network Error occurred during upload.";
+                log.style.color = "#ff6b6b";
+                fill.style.background = "#ff6b6b";
+                
+                // Re-enable form
+                allInputs.forEach(input => input.disabled = false);
+                submitBtn.style.display = 'block';
+            });
+
+            // Send the request!
+            xhr.open('POST', form.action, true);
+            xhr.send(formData);
+        });
+    </script>
 </body>
 </html>
