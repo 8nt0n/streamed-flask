@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Media Manager Dashboard</title>
     <style>
+        /* Keeping typography consistent with the upload pages */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -12,8 +15,9 @@
         }
 
         body {
-            background-color: #0b0f19;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            /* Dark radial gradient background to make the glass pop */
+            background: radial-gradient(circle at top right, #2c313a, #0b0f19 70%);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             color: #ffffff;
             min-height: 100vh;
             padding: 40px;
@@ -25,18 +29,23 @@
             justify-content: space-between;
             align-items: center;
             padding-bottom: 24px;
-            border-bottom: 1px solid #161f30; /* Divider line under navbar */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08); /* Frosted divider line */
             margin-bottom: 40px;
         }
 
         .brand-badge {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
             padding: 8px 16px;
-            gap: 8px;
-        }
+            /* Added min dimensions so it looks good even without the image loading */
+            min-width: 40px; 
+            min-height: 40px;
+            object-fit: contain;
 
-        .brand-badge::before {
-            content: "▶";
-            font-size: 10px;
+            cursor: pointer;
         }
 
         .title-container {
@@ -44,15 +53,17 @@
         }
 
         .title-container h1 {
-            font-size: 32px;
-            font-weight: 500;
+            font-size: 28px;
+            font-weight: 600;
             letter-spacing: 0.5px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
         .title-container p {
             font-size: 14px;
-            color: #56617a;
-            margin-top: 2px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 4px;
+            font-weight: 400;
         }
 
         .user-profile {
@@ -60,22 +71,28 @@
             align-items: center;
             gap: 12px;
             text-align: right;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .user-details .username {
             font-size: 14px;
             font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .user-details .role {
             font-size: 12px;
-            color: #56617a;
+            color: rgba(255, 255, 255, 0.5);
         }
 
         .avatar-placeholder {
-            width: 40px;
-            height: 40px;
-            background-color: #e0e0e0;
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 50%;
         }
 
@@ -85,10 +102,11 @@
         }
 
         .section-title {
-            font-size: 24px;
-            font-weight: 400;
+            font-size: 20px;
+            font-weight: 500;
             margin-bottom: 20px;
-            color: #ffffff;
+            color: rgba(255, 255, 255, 0.9);
+            letter-spacing: -0.5px;
         }
 
         .grid-container {
@@ -97,7 +115,7 @@
             gap: 20px;
         }
 
-        /* --- Interactive Gradient Tiles --- */
+        /* --- Interactive Glass Gradient Tiles --- */
         .tile {
             display: flex;
             align-items: center;
@@ -106,38 +124,100 @@
             border-radius: 18px;
             padding: 0 24px;
             text-decoration: none;
-            color: #000000;
+            color: #ffffff; /* Switched to white for dark mode contrast */
             font-weight: 500;
-            font-size: 18px;
-            gap: 20px;
-            transition: transform 0.2s ease, filter 0.2s ease;
-        }
-
-        .tile:hover {
-            transform: translateY(-3px);
-            filter: brightness(1.08);
+            font-size: 16px;
+            gap: 16px;
+            
+            /* Core Glass Properties */
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         .tile-icon {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); /* Makes icons pop inside glass */
         }
 
-        /* Gradient Layout Customization */
-        .tile-movie { background: linear-gradient(135deg, #ff7b23, #ffae42); }
-        .tile-series { background: linear-gradient(135deg, #49688d, #7499c2); }
-        .tile-audio { background: linear-gradient(135deg, #874ef4, #b983ff); }
-        .tile-more { background: linear-gradient(135deg, #cdcdcd, #f0f0f0); }
-        .tile-uptime { background: linear-gradient(135deg, #19cb55, #56ec84); }
-        .tile-logs { background: linear-gradient(135deg, #17b3b3, #4fe1db); }
-        .tile-storage { background: linear-gradient(135deg, #e34c93, #f985be); }
+        /* Tinted Glass Layouts 
+           Converted your solid hex colors into semi-transparent rgba gradients 
+        */
+        
+        /* Movie: Orange */
+        .tile-movie { background: linear-gradient(135deg, rgba(255, 123, 35, 0.15), rgba(255, 174, 66, 0.05)); }
+        .tile-movie:hover {
+            background: linear-gradient(135deg, rgba(255, 123, 35, 0.25), rgba(255, 174, 66, 0.15));
+            border-color: rgba(255, 174, 66, 0.3);
+            box-shadow: 0 10px 30px rgba(255, 123, 35, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transform: translateY(-4px);
+        }
+
+        /* Series: Blue */
+        .tile-series { background: linear-gradient(135deg, rgba(73, 104, 141, 0.2), rgba(116, 153, 194, 0.1)); }
+        .tile-series:hover {
+            background: linear-gradient(135deg, rgba(73, 104, 141, 0.3), rgba(116, 153, 194, 0.2));
+            border-color: rgba(116, 153, 194, 0.4);
+            box-shadow: 0 10px 30px rgba(116, 153, 194, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transform: translateY(-4px);
+        }
+
+        /* Audio: Purple */
+        .tile-audio { background: linear-gradient(135deg, rgba(135, 78, 244, 0.15), rgba(185, 131, 255, 0.05)); }
+        .tile-audio:hover {
+            background: linear-gradient(135deg, rgba(135, 78, 244, 0.25), rgba(185, 131, 255, 0.15));
+            border-color: rgba(185, 131, 255, 0.3);
+            box-shadow: 0 10px 30px rgba(135, 78, 244, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transform: translateY(-4px);
+        }
+
+        /* More: Gray/White */
+        .tile-more { background: linear-gradient(135deg, rgba(205, 205, 205, 0.1), rgba(240, 240, 240, 0.02)); }
+        .tile-more:hover {
+            background: linear-gradient(135deg, rgba(205, 205, 205, 0.15), rgba(240, 240, 240, 0.08));
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transform: translateY(-4px);
+        }
+
+        /* Uptime: Green */
+        .tile-uptime { background: linear-gradient(135deg, rgba(25, 203, 85, 0.15), rgba(86, 236, 132, 0.05)); }
+        .tile-uptime:hover {
+            background: linear-gradient(135deg, rgba(25, 203, 85, 0.25), rgba(86, 236, 132, 0.15));
+            border-color: rgba(86, 236, 132, 0.3);
+            box-shadow: 0 10px 30px rgba(25, 203, 85, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transform: translateY(-4px);
+        }
+
+        /* Logs: Cyan */
+        .tile-logs { background: linear-gradient(135deg, rgba(23, 179, 179, 0.15), rgba(79, 225, 219, 0.05)); }
+        .tile-logs:hover {
+            background: linear-gradient(135deg, rgba(23, 179, 179, 0.25), rgba(79, 225, 219, 0.15));
+            border-color: rgba(79, 225, 219, 0.3);
+            box-shadow: 0 10px 30px rgba(23, 179, 179, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transform: translateY(-4px);
+        }
+
+        /* Storage: Pink */
+        .tile-storage { background: linear-gradient(135deg, rgba(227, 76, 147, 0.15), rgba(249, 133, 190, 0.05)); }
+        .tile-storage:hover {
+            background: linear-gradient(135deg, rgba(227, 76, 147, 0.25), rgba(249, 133, 190, 0.15));
+            border-color: rgba(249, 133, 190, 0.3);
+            box-shadow: 0 10px 30px rgba(227, 76, 147, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            transform: translateY(-4px);
+        }
     </style>
 </head>
 <body>
 
     <header class="header">
-        <img src="static/icon.png" alt="" class="brand-badge">
+        <img src="static/icon.png" alt="" class="brand-badge" onclick="window.location.href ='/'">
         
         <div class="title-container">
             <h1>Dashboard</h1>
@@ -159,22 +239,22 @@
             <div class="grid-container">
                 
                 <a href="upload_movie" class="tile tile-movie">
-                    <img src="static/icons/dashboard/movie.png" alt="Movie" class="tile-icon">
+                    <img src="static/icons/dashboard/movie.png" alt="" class="tile-icon">
                     <span>Movie</span>
                 </a>
 
-                <a href="series.html" class="tile tile-series">
-                    <img src="static/icons/dashboard/series.png" alt="Series" class="tile-icon">
+                <a href="upload_series" class="tile tile-series">
+                    <img src="static/icons/dashboard/series.png" alt="" class="tile-icon">
                     <span>Series</span>
                 </a>
 
-                <a href="audio.html" class="tile tile-audio">
-                    <img src="static/icons/dashboard/audio.png" alt="Audio" class="tile-icon">
+                <a href="upload_audio" class="tile tile-audio">
+                    <img src="static/icons/dashboard/audio.png" alt="" class="tile-icon">
                     <span>Audio</span>
                 </a>
 
-                <a href="more.html" class="tile tile-more">
-                    <img src="static/icons/dashboard/more.png" alt="More to come" class="tile-icon">
+                <a href="" class="tile tile-more">
+                    <img src="static/icons/dashboard/more.png" alt="" class="tile-icon">
                     <span>More to come</span>
                 </a>
 
@@ -186,17 +266,17 @@
             <div class="grid-container">
 
                 <a href="uptime.html" class="tile tile-uptime">
-                    <img src="static/icons/dashboard/uptime.png" alt="Uptime" class="tile-icon">
+                    <img src="static/icons/dashboard/uptime.png" alt="" class="tile-icon">
                     <span>Uptime</span>
                 </a>
 
                 <a href="logs.html" class="tile tile-logs">
-                    <img src="static/icons/dashboard/logs.png" alt="Logs" class="tile-icon">
+                    <img src="static/icons/dashboard/logs.png" alt="" class="tile-icon">
                     <span>Logs</span>
                 </a>
 
                 <a href="storage.html" class="tile tile-storage">
-                    <img src="static/icons/dashboard/storage.png" alt="Storage" class="tile-icon">
+                    <img src="static/icons/dashboard/storage.png" alt="" class="tile-icon">
                     <span>Storage</span>
                 </a>
 
