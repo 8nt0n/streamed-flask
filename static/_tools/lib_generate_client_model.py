@@ -15,7 +15,9 @@ import uuid
 import lib_streamed_tools_common as cmn
 
 DATA_FILE_PATH = os.path.join("static/data.js")
-TEMP_FILE_PATH = os.path.join("..", "data_" + uuid.uuid4().hex + ".tmp")
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMP_FILE_PATH = os.path.join(BASE_DIR + ".." + "data_" + uuid.uuid4().hex + ".tmp")
 UNKNOWN_VALUE = "[n/a]"
 
 
