@@ -280,3 +280,20 @@ def upload_series():
         print(result)        
 
         return redirect("/")
+
+# ------------------------refresh------------------------#
+# this is kinda debug for now, incase you manually add files or a upload fails yeah
+@app.route("/refresh", methods=["GET"]) 
+def refresh():
+    if request.method == "GET":
+        script_path = "static/_tools/refresh.py"
+        result = subprocess.run(
+            [sys.executable, script_path],
+            capture_output=True,
+            text=True
+        )
+
+        print(result)        
+
+        return redirect("/")
+    
