@@ -3,7 +3,7 @@ import os
 import subprocess
 import sys
 from cs50 import SQL
-from flask import Flask, flash, redirect, render_template, request, session, make_response, url_for
+from flask import Flask, flash, redirect, render_template, request, session, make_response, url_for, jsonify
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
@@ -198,88 +198,95 @@ def upload_movie():
     
 
 
-
 # ------------------------upload series------------------------#
 
-@app.route("/upload_series", methods=["GET", "POST"]) 
+@app.route("/upload_series", methods=["GET", "POST"])
 def upload_series():
     if request.method == "GET":
         return render_template("upload_series.html")
     
     if request.method == "POST":
-        # Get master series info
-        series_title = secure_filename(request.form.get("series_title")) # making sure bad people can't do bad things
-        description = request.form.get("series_description")
-        series_cover = request.files.get("series_cover")
-
-        # Validate master series info
-        if not series_title:
-            return apology("missing series title", 400)
-        if not description:
-            return apology("missing series description", 400)
-        if not series_cover:
-            return apology("missing main series cover", 400)
-        if not series_cover.filename.endswith(".png"):
-            return apology("series cover must be png", 400)
-
-        # Set up base paths
-        base_path = f"static/media/series/{series_title}"
-        meta_path = f"{base_path}/meta"
-
-        # Try to create the series and meta folders
-        try:
-            os.makedirs(meta_path, exist_ok=False)
-        except FileExistsError:
-            return apology("series already exists", 400)
-        with open(f"{meta_path}/description.txt", "w") as descriptionFile:
-            descriptionFile.write(description)
-        series_cover.save(f"{meta_path}/0.png")
-
-        # Get the maximum number of seasons added in the form
-        try:
-            max_season_index = int(request.form.get("max_season_index", 1))
-        except ValueError:
-            max_season_index = 1
-
-        for i in range(1, max_season_index + 1):
-            cover_field = f"season_{i}_cover"
-            episodes_field = f"season_{i}_episodes"
-
-            # Check if this specific season was actually uploaded
-            if cover_field in request.files:
-                season_cover = request.files.get(cover_field)
-                season_episodes = request.files.getlist(episodes_field) # getlist handles multiple file uploads
-
-                # Validation for the season files
-                if not season_cover or not season_cover.filename.endswith(".png"):
-                    return apology(f"season {i} cover missing or not png", 400)
+        action = request.form.get("action")
+        
+        # INIT
+        if action == "init":
+            try:
+                series_title = secure_filename(request.form.get("series_title"))
+                description = request.form.get("series_description")
                 
-                if not season_episodes or all(ep.filename == '' for ep in season_episodes):
-                    return apology(f"season {i} is missing episodes", 400)
+                if not series_title:
+                    return {"error": "Missing series title"}, 400
 
-                season_cover.save(f"{meta_path}/{i}.png")
-                season_path = f"{base_path}/{i}"
-                os.makedirs(season_path, exist_ok=True)
+                base_path = f"static/media/series/{series_title}"
+                meta_path = f"{base_path}/meta"
 
-                for episode in season_episodes:
-                    if episode and episode.filename:
-                        if not episode.filename.endswith(".mp4"):
-                            return apology(f"season {i} episodes must be mp4", 400)
+                try:
+                    os.makedirs(meta_path, exist_ok=False)
+                except FileExistsError:
+                    return {"error": "Series folder already exists! Please delete it or rename."}, 400
+
+                # Save Description
+                with open(f"{meta_path}/description.txt", "w") as descriptionFile:
+                    descriptionFile.write(description)
+
+                # Save Main Cover
+                series_cover = request.files.get("series_cover")
+                if series_cover:
+                    series_cover.save(f"{meta_path}/0.png")
+
+                # Process Season Folders and Covers
+                max_season_index = int(request.form.get("max_season_index", 1))
+
+                for i in range(1, max_season_index + 1):
+                    cover_field = f"season_{i}_cover"
+                    if cover_field in request.files:
+                        os.makedirs(f"{base_path}/{i}", exist_ok=True)
+                        season_cover = request.files.get(cover_field)
+                        season_cover.save(f"{meta_path}/{i}.png")
                         
-                        safe_ep_name = secure_filename(episode.filename)
-                        episode.save(f"{season_path}/{safe_ep_name}")
+                # Returning a dict converts to JSON in Flask??
+                return {"status": "success"}, 200
 
-        # Run refresh.py
-        script_path = "static/_tools/refresh.py"
-        result = subprocess.run(
-            [sys.executable, script_path],
-            capture_output=True,
-            text=True
-        )
+            except Exception as e:
+                print(f"CRASH IN PHASE 1: {e}")
+                return {"error": f"Backend crashed: {str(e)}"}, 500
 
-        print(result)        
+        # CHUNKING
+        elif action == "chunk":
+            try:
+                series_title = secure_filename(request.form.get("series_title"))
+                season_index = secure_filename(request.form.get("season_index"))
+                filename = secure_filename(request.form.get("filename"))
+                chunk = request.files.get("chunk")
 
-        return redirect("/")
+                if not all([series_title, season_index, filename, chunk]):
+                    return {"error": "Missing chunk data"}, 400
+
+                file_path = f"static/media/series/{series_title}/{season_index}/{filename}"
+
+                with open(file_path, "ab") as f:
+                    f.write(chunk.read())
+
+                return {"status": "success"}, 200
+                
+            except Exception as e:
+                print(f"CRASH IN PHASE 2: {e}")
+                return {"error": f"Chunk failed: {str(e)}"}, 500
+
+        # FINALIZE
+        elif action == "finalize":
+            try:
+                script_path = "static/_tools/refresh.py"
+                result = subprocess.run([sys.executable, script_path], capture_output=True, text=True)
+                print("Refresh Script Result:", result.stdout)
+                
+                return {"status": "completed", "redirect": "/"}, 200
+                
+            except Exception as e:
+                print(f"CRASH IN PHASE 3: {e}")
+                return {"error": f"Finalize failed: {str(e)}"}, 500
+
+        return {"error": "Invalid action"}, 400
 
 # ------------------------refresh------------------------#
 # this is kinda debug for now, incase you manually add files or a upload fails yeah
