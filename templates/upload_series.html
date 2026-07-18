@@ -301,8 +301,7 @@
 
         </form>
     </div>
-
-     <script>
+<script>
         let seasonIndex = 1;
 
         function addSeason() {
@@ -325,7 +324,7 @@
                 </div>
                 <div class="input-group">
                     <label>Episodes (.mp4) — Select multiple files</label>
-                    <input type="file" name="season_${seasonIndex}_episodes" accept=".mp4" multiple required>
+                    <input type="file" id="season_${seasonIndex}_episodes" name="season_${seasonIndex}_episodes" accept=".mp4" multiple required>
                 </div>
             `;
             container.appendChild(seasonBlock);
@@ -336,8 +335,9 @@
             if (block) block.remove();
         }
 
-        document.getElementById('uploadForm').addEventListener('submit', function(e) {
-            e.preventDefault(); // Stop standard form submission
+        // --- ASYNC CHUNKED UPLOAD LOGIC ---
+        document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
 
             const form = this;
             const submitBtn = document.getElementById('submitBtn');
@@ -346,78 +346,128 @@
             const fill = document.getElementById('progress-fill');
             const log = document.getElementById('progress-log');
             const percentText = document.getElementById('progress-percent');
+            
             const maxSeason = parseInt(document.getElementById('max_season_index').value);
+            const seriesTitle = form.querySelector('input[name="series_title"]').value;
 
-            // must create the FormData before disabling inputs, 
-            // otherwise disabled inputs are ignored and sent as empty.
-            const formData = new FormData(form);
-
-            // 2. NOW disable the inputs
+            // 1. Lock the UI
             const allInputs = form.querySelectorAll('input, button');
             allInputs.forEach(input => input.disabled = true);
-
-            // Swap out submit buttons for the progress UI
             submitBtn.style.display = 'none';
             addBtn.style.display = 'none';
             progressContainer.style.display = 'block';
 
-            // Create XHR request
-            const xhr = new XMLHttpRequest();
+            try {
+                // Send Initialization Data
+                log.innerText = "Creating folders and saving covers...";
+                
+                // Grab all values BEFORE we lock the UI
+                const seriesTitleVal = form.querySelector('input[name="series_title"]').value;
+                const seriesDescVal = form.querySelector('input[name="series_description"]').value;
+                const seriesCoverFile = form.querySelector('input[name="series_cover"]').files[0];
 
-            // Track Upload Progress
-            xhr.upload.addEventListener('progress', function(event) {
-                if (event.lengthComputable) {
-                    let percentComplete = (event.loaded / event.total) * 100;
-                    
-                    // Update visual UI
-                    fill.style.width = percentComplete + '%';
-                    percentText.innerText = Math.round(percentComplete) + '%';
-                    
-                    if (percentComplete < 100) {
-                        // Calculate which season we are probably uploading to fake a cool log
-                        let currentEstimatedSeason = Math.ceil((percentComplete / 100) * maxSeason) || 1;
-                        if (currentEstimatedSeason > maxSeason) currentEstimatedSeason = maxSeason;
-                        
-                        log.innerText = `Uploading Season ${currentEstimatedSeason} chunks...`;
-                    } else {
-                        // Upload is done, now Flask is saving/running the refresh script
-                        log.innerText = "Processing files on server... (Please wait)";
-                        fill.style.background = "#56ec84"; // turn green
-                        fill.style.boxShadow = "0 0 10px rgba(86, 236, 132, 0.5)";
+                let initData = new FormData();
+                initData.append("action", "init");
+                initData.append("series_title", seriesTitleVal);
+                initData.append("series_description", seriesDescVal);
+                initData.append("max_season_index", maxSeason);
+                initData.append("series_cover", seriesCoverFile);
+
+                for (let i = 1; i <= maxSeason; i++) {
+                    let coverInput = form.querySelector(`input[name="season_${i}_cover"]`);
+                    if (coverInput && coverInput.files[0]) {
+                        initData.append(`season_${i}_cover`, coverInput.files[0]);
                     }
                 }
-            });
 
-            // Handle Response Completion
-            xhr.addEventListener('load', function() {
-                // Flask returns 302 on success because of your redirect("/")
-                if (xhr.status === 200 || xhr.status === 302 || xhr.status === 201) { 
-                    log.innerText = "Upload Complete! Redirecting...";
-                    setTimeout(() => {
-                        window.location.href = '/'; // Go to dashboard
-                    }, 1000);
-                } else {
-                    log.innerText = "Error uploading. Server returned " + xhr.status;
-                    log.style.color = "#ff6b6b";
-                    fill.style.background = "#ff6b6b"; // turn red
-                    fill.style.boxShadow = "none";
-                    
-                    // Re-enable form so they can try again
-                    allInputs.forEach(input => input.disabled = false);
-                    submitBtn.style.display = 'block';
+                let initRes = await fetch('/upload_series', { method: 'POST', body: initData });
+
+                if (!initRes.ok) {
+                    let errData = await initRes.json().catch(() => ({error: "Unknown Server Error"}));
+                    throw new Error(errData.error || "Failed to initialize series.");
                 }
-            });
 
-            // Handle network errors
-            xhr.addEventListener('error', function() {
-                log.innerText = "Network Error occurred during upload.";
+                // Upload Video Files in Chunks
+                const CHUNK_SIZE = 50 * 1024 * 1024;
+                
+                let totalBytes = 0;
+                let uploadedBytes = 0;
+                let filesToUpload = [];
+
+                for (let i = 1; i <= maxSeason; i++) {
+                    let epInput = form.querySelector(`input[name="season_${i}_episodes"]`);
+                    if (epInput && epInput.files.length > 0) {
+                        for (let file of epInput.files) {
+                            totalBytes += file.size;
+                            filesToUpload.push({ seasonIndex: i, file: file });
+                        }
+                    }
+                }
+
+                for (let j = 0; j < filesToUpload.length; j++) {
+                    let target = filesToUpload[j];
+                    let file = target.file;
+                    let totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+
+                    log.innerText = `Uploading S${target.seasonIndex} - ${file.name}...`;
+
+                    for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+                        let start = chunkIndex * CHUNK_SIZE;
+                        let end = Math.min(start + CHUNK_SIZE, file.size);
+                        let chunk = file.slice(start, end);
+
+                        let chunkData = new FormData();
+                        chunkData.append("action", "chunk");
+                        chunkData.append("series_title", seriesTitleVal); 
+                        chunkData.append("season_index", target.seasonIndex);
+                        chunkData.append("filename", file.name);
+                        chunkData.append("chunk", chunk);
+
+                        let chunkRes = await fetch('/upload_series', { method: 'POST', body: chunkData });
+                        
+                        if (!chunkRes.ok) {
+                            let errData = await chunkRes.json().catch(() => ({error: `Failed during ${file.name}`}));
+                            throw new Error(errData.error);
+                        }
+                        await chunkRes.text(); 
+                        // Let the browser clear RAM every five chunks
+                        if (chunkIndex % 5 === 0) {
+                            await new Promise(resolve => setTimeout(resolve, 50));
+                        }
+
+                        uploadedBytes += (end - start);
+                        let percentComplete = Math.round((uploadedBytes / totalBytes) * 100);
+                        fill.style.width = percentComplete + '%';
+                        percentText.innerText = percentComplete + '%';
+                    }
+                }
+
+                // Finalize
+                log.innerText = "Finalizing server data... (Please wait)";
+                fill.style.background = "#56ec84";
+                fill.style.boxShadow = "0 0 10px rgba(86, 236, 132, 0.5)";
+
+                let finalizeData = new FormData();
+                finalizeData.append("action", "finalize");
+                
+                let finalRes = await fetch('/upload_series', { method: 'POST', body: finalizeData });
+                let finalJson = await finalRes.json();
+
+                if (finalRes.ok && finalJson.redirect) {
+                    log.innerText = "Upload Complete! Redirecting...";
+                    setTimeout(() => window.location.href = finalJson.redirect, 1000);
+                }
+
+            } catch (error) {
+                console.error(error);
+                log.innerText = error.message;
                 log.style.color = "#ff6b6b";
                 fill.style.background = "#ff6b6b";
-            });
-
-            // Send the request!
-            xhr.open('POST', form.action, true);
-            xhr.send(formData);
+                fill.style.boxShadow = "none";
+                
+                allInputs.forEach(input => input.disabled = false);
+                submitBtn.style.display = 'block';
+            }
         });
     </script>
 </body>
