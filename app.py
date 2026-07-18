@@ -17,7 +17,7 @@ app = Flask(__name__)
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
-app.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024 * 1024 # kaplau... kaboom max upload file size is now 200GB
+app.config["MAX_CONTENT_LENGTH"] = 500 * 1024 * 1024 * 1024 # kaplau... kaboom max upload file size is now 500GB (wow 200gb sounded like a lot but series get really big really fast ifykyk)
 Session(app)
 
 # Configure CS50 Library to use SQLite database
