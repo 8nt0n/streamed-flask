@@ -929,7 +929,7 @@
 //                    for (let episodeFile of summary.seasonEp[i]) {
                     for (let j = 0; j < summary.seasonEp[i].length; j++) {
                         const episodeFile = summary.seasonEp[i][j];
-                        const episodeTitle = summary.episodeTitles[i][j];
+                        const episodeTitle = episodeFile.replaceAll("_", " "); // bro i dont even know what we did the title for like as if the filename wouldnt be enoguh huh?
                         const epNum = ++episodeNum; // must be a const for use in the click handler lambda below
                         let episodeOption = document.createElement("div");
                         episodeOption.setAttribute("style", "");
