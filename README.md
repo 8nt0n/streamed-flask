@@ -1,101 +1,92 @@
-![Icon](https://raw.githubusercontent.com/8nt0n/streamed/main/src/icon.png)
+<div align="center">
+  <img src="https://raw.githubusercontent.com/8nt0n/streamed/main/src/icon.png" alt="Streamed Icon" width="120" />
+  <h1>Streamed</h1>
+  <p><b>A painfully simple, lightweight media server for your local network.</b></p>
+  
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+  
+  [Live Demo](https://streamed-demo.netlify.app/) • [Video Demo](https://www.youtube.com/watch?v=EzZ0E9ARLbg)
+</div>
 
-
-## [Video Demo](https://www.youtube.com/watch?v=EzZ0E9ARLbg)
+---
 
 ![Screenshot](https://raw.githubusercontent.com/8nt0n/8nt0n/refs/heads/main/github%20desc/demo_screenshot.png)
 
-## [Live Demo](https://streamed-demo.netlify.app/)
-
 ## Overview
 
-Streamed is a painfully simple media server that lets you stream your local video hoard from a web browser. No subscription, no account, no nonsense, just run it and boom - your questionable anime collection is now wirelessly accessible
+Streamed is a ridiculously simple media server that lets you stream your local video hoard from a web browser. No subscriptions, no user accounts, no heavy databases, no nonsense. Just run it, and boom—your questionable anime collection is now wirelessly accessible.
+
+If Plex and Jellyfin feel too bloated for your needs, Streamed is the bare-minimum alternative you've been looking for.
+
+### Why use Streamed?
+- 🪶 **Stupidly Lightweight:** No heavy database (uses a simple static `.js` file).
+- 🚀 **Instant Setup:** Point it at a folder and go.
+- 📱 **Browser-First:** Stream to any device with a modern web browser.
+- 🛠️ **Zero Dependencies:** Written in Python/Flask. 
 
 ---
 
-## Features
-- **Local Video Streaming**: Stream movies and TV shows directly from your own collection to any device with a web browser.
-- **Dynamic Listing**: Automatically generates a list of your available media, with metadata like titles, descriptions, and duration.
-- **Easy Setup**: Just configure your media files, run the server, and the application will do the rest.
-- **Minimalist Design**: Clean and simple interface with minimal configuration required.
-- **Cross-Platform Support**: Can run on any operating system with Python installed.
+## 🚀 Getting Started
 
----
+### Option 1: Docker (Recommended for Homelabs)
+The easiest way to get Streamed running on your home server.
 
-## Getting Started
+```yaml
+version: '3.8'
+services:
+  streamed:
+    image: ghcr.io/8nt0n/streamed:latest # Or build from source
+    container_name: streamed
+    ports:
+      - "5000:5000"
+    volumes:
+      - /path/to/your/movies:/app/media
+    restart: unless-stopped
 
-To get started with Streamed, clone the repository, set up your media files, and run the necessary scripts to populate the server. The main interface is built using basic web technologies like HTML, CSS, and JavaScript.
+```
+
+### Option 2: Bare Metal (Python)
+
+If you want to run it directly via Python on Windows, Mac, or Linux:
 
 ```bash
 git clone https://github.com/8nt0n/streamed.git
 cd streamed
+
+# Setup Virtual Environment
 python3 -m venv venv
-source venv/bin/activate
-pip3 -r install requirements.txt
-flask run
+source venv/bin/activate  # On Windows use: venv\Scripts\activate
+
+# Install & Run
+pip install -r requirements.txt
+flask run --host=0.0.0.0
+
 ```
 
-# File Structure - Explained
-## 1. index.html | style.css
-These two files handle the front-end user interface of your media server.
+---
 
-index.html: This file is responsible for rendering the main webpage, which lists all the available movies and series from your collection. It dynamically loads the media content from data.js, making it easy to update the page when new media is added.
-style.css: This file defines the look and feel of the page. It applies styling such as colors, fonts, and layout, creating a clean and responsive design for the media list.
-2. data.js
-data.js: This file holds all the metadata for the movies and TV shows in your collection. It's a JavaScript file that is dynamically loaded into index.html to populate the webpage with media content.
-Each movie or series is represented as an object with several key properties:
+## 📁 How to Add Media
 
-```bash
-{
-    title: 'a nightmare on elm street',
-    path: 'a-nightmare-on-elm-street',
-    length: '1h 31m',
-    description: 'the movie is about....',
-    type: 'movies',
-    id: 'M1',
-}
-```
+Ill write that later 😅
 
-title: The title of the movie or show.
-path: The URL-friendly version of the title, used for file paths.
-length: The duration of the movie or episode.
-description: A brief description of the movie or episode.
-type: Categorizes the media as either 'movies' or 'series'.
-id: A unique identifier for each piece of media, used for easy referencing.
-You can modify this file manually or run scripts (described below) to automate the process of generating the data.js file based on your media folder.
+---
 
-## 3. update.bat | main.py
-These files are used to automate the process of generating and updating the content in data.js.
+## 🛠️ Development & Contributing
 
-#### update.bat: This batch file serves as a convenient way to run main.py on Windows systems. Instead of manually invoking the Python script, you can simply double-click update.bat to run the update process.
+Pull requests are highly encouraged!
 
-#### main.py: This Python script scans your media directory, extracts relevant information (like filenames and file paths), and automatically generates or updates the data.js file. It saves you time by automating the process of adding new media to the server.
-
-## How to use:
-Place your video files in the designated folder.
-Run update.bat (or manually execute main.py) to update data.js with the latest metadata.
-
-4. thanks.py
+**A note on `thanks.py`:**
 What’s it do? Nothing. It just says:
 
-
-```bash
+```text
 No problem!
+
 ```
-Run it after fixing bugs. It's your emotional support script.
 
+Run it after fixing a frustrating bug. It is your emotional support script.
 
-## How It Works
-Streamed works by serving a simple webpage that lists your media collection. The backend logic (handled by main.py) scans your local media folder, extracts metadata, and creates a data.js file that contains the necessary details about your media. This data is then injected into index.html dynamically, creating a media catalog on-the-fly.
-
-## Requirements
-Python: The backend relies on Python to generate the data.js file. Make sure Python is installed on your system.
-A Web Browser: Once the server is running, you can access your media library from any device by navigating to the server's URL in a browser.
-Optional Customizations
-You can modify the styling in style.css to match your personal preferences or tweak index.html to add additional functionality (like search bars or filters).
-
-## Contribution
-If you'd like to contribute to this project, feel free to submit a pull request! Contributions are welcome, whether it's improving the design, adding new features, or fixing bugs. Be sure to follow the project's coding guidelines and maintain clean, readable code.
+---
 
 ## License
-MIT. Do what you want. Just don’t blame me if it catches fire.
+
+MIT. Do what you want. Just don’t blame me if your server catches fire.
