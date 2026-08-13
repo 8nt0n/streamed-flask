@@ -31,19 +31,16 @@ If Plex and Jellyfin feel too bloated for your needs, Streamed is the bare-minim
 ### Option 1: Docker (Recommended for Homelabs)
 The easiest way to get Streamed running on your home server.
 
-```yaml
-version: '3.8'
-services:
-  streamed:
-    image: ghcr.io/8nt0n/streamed:latest # Or build from source
-    container_name: streamed
-    ports:
-      - "5000:5000"
-    volumes:
-      - /path/to/your/movies:/app/media
-    restart: unless-stopped
-
+**1. Clone and enter the project:**
+```bash
+git clone https://github.com/8nt0n/streamed.git
+cd streamed
 ```
+**2. Start the server:**
+```bash
+docker compose up -d --build
+```
+Thats it - streamed is now up and running on ``http://localhost:5000/``
 
 ### Option 2: Bare Metal (Python)
 
