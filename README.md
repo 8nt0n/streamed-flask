@@ -1,7 +1,7 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/8nt0n/streamed/main/src/icon.png" alt="Streamed Icon" width="120" />
   <h1>Streamed</h1>
-  <p><b>A painfully simple, lightweight media server for your local network.</b></p>
+  <p><b>A painfully simple, lightweight media server for YOUR local network.</b></p>
   
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   
@@ -14,15 +14,14 @@
 
 ## Overview
 
-Streamed is a ridiculously simple media server that lets you stream your local video hoard from a web browser. No subscriptions, no user accounts, no heavy databases, no nonsense. Just run it, and boom—your questionable anime collection is now wirelessly accessible.
+**Lets you stream your local video hoard from any web browser:** no subscriptions, no 3. party accounts, no nonsense. Just run it, and boom - your questionable anime collection is now wirelessly accessible.
 
-If Plex and Jellyfin feel too bloated for your needs, Streamed is the bare-minimum alternative you've been looking for.
+> If Plex and Jellyfin feel too bloated for your needs, Streamed is the bare-minimum alternative you've been looking for.
 
 ### Why use Streamed?
-- 🪶 **Stupidly Lightweight:** No heavy database (uses a simple static `.js` file).
-- 🚀 **Instant Setup:** Point it at a folder and go.
-- 📱 **Browser-First:** Stream to any device with a modern web browser.
-- 🛠️ **Zero Dependencies:** Written in Python/Flask. 
+1. 🔒 **Privacy first:** No Google Sign-In, no online bs, just your local media collection accesible for you 
+2. 🚀 **Instant Setup:** Ready in < 5 minutes
+3. 📱 **Compatible af:** Stream to any device with a modern web browser. 
 
 ---
 
@@ -77,7 +76,6 @@ What’s it do? Nothing. It just says:
 
 ```text
 No problem!
-
 ```
 
 Run it after fixing a frustrating bug. It is your emotional support script.
