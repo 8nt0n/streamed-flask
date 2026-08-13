@@ -1,0 +1,9 @@
+services:
+  streamed:
+    build: .
+    container_name: streamed
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./streamed_data:/app/static/media
+    restart: unless-stopped
