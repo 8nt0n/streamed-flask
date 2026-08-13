@@ -51,7 +51,7 @@ If you want to run it directly via Python on Windows, Mac, or Linux:
 
 ```bash
 git clone https://github.com/8nt0n/streamed.git
-cd streamed
+cd streamed-flask/
 
 # Setup Virtual Environment
 python3 -m venv venv
