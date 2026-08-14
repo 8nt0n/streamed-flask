@@ -16,12 +16,14 @@
 
 **Lets you stream your local video hoard from any web browser:** no subscriptions, no 3. party accounts, no nonsense. Just run it, and boom - your questionable anime collection is now wirelessly accessible.
 
-> If Plex and Jellyfin feel too bloated for your needs, Streamed is the bare-minimum alternative you've been looking for.
+> If Plex or Jellyfin feel too bloated for your too, Streamed is the bare-bones alternative you've been looking for.
 
 ### Why use Streamed?
-1. 🔒 **Privacy first:** No Google Sign-In, no online bs, just your local media collection accesible for you 
+1. 🔒 **Privacy first:** No Google Sign-In, Email or any online bs, just your local media collection accesible for you 
 2. 🚀 **Instant Setup:** Ready in < 5 minutes
 3. 📱 **Compatible af:** Stream to any device with a modern web browser. 
+
+⭐ **If you hate bloated software as much as I do, consider dropping a star on this repository!** ⭐
 
 ---
 
@@ -40,6 +42,7 @@ cd streamed
 docker compose up -d --build
 ```
 Thats it - streamed is now up and running on ``http://localhost:5000/``
+Access it from your phone/TV on the same network: ``http://<YOUR_SERVER_IP>:5000``
 
 ### Option 2: Bare Metal (Python)
 
@@ -63,7 +66,9 @@ flask run --host=0.0.0.0
 
 ## 📁 How to Add Media
 
-Ill write that later 😅
+1. Log in and visit the Index page.
+2. Click the + Dashboard button at the top.
+3. Select what you want to upload (Movie, Series, or Audio). Streamed automatically handles the upload, saves it to your persistent storage, refreshes your library in the background, and redirects you back.
 
 ---
 
